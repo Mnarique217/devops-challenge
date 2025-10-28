@@ -1,7 +1,10 @@
 const express = require('express');
-const app = express();
+const Database = require('./services/database')
 
-const PORT= process.env.PORT || 3000
+const app = express();
+const database = new Database();
+
+const PORT = process.env.PORT || 3000
 
 // Middleware for parsing JSON
 app.use(express.json());
@@ -10,6 +13,7 @@ let users = [
   { id: 1, name: 'John Doe', email: 'john@example.com' },
   { id: 2, name: 'Jane Smith', email: 'jane@example.com' }
 ];
+
 
 app.get('/users', (req, res) => {
   res.json(users);
@@ -49,6 +53,43 @@ app.delete('/users/:id', (req, res) => {
 
   const deletedUser = users.splice(userIndex, 1);
   res.json(deletedUser[0]);
+});
+
+
+app.get('/health', async (_req, res, _next) => {
+  try {
+    const response = {
+      uptime: process.uptime(),
+      status: 'OK',
+      timestamp: Date.now()
+    }
+    res.status(200).send(response);
+  } catch (error) {
+    res.status(503).send()
+  }
+});
+
+app.get('/ready', async (_req, res, _next) => {
+  try {
+    if (database.checkConnection())
+      res.status(200).send({
+        uptime: process.uptime(),
+        status: 'READY',
+        timestamp: Date.now()
+      });
+    else
+      res.status(503).send({
+        uptime: process.uptime(),
+        status: "NOT READY",
+        timestamp: Date.now()
+      })
+  } catch (error) {
+    res.status(503).send({
+      uptime: process.uptime(),
+      status: "NOT READY",
+      timestamp: Date.now()
+    })
+  }
 });
 
 app.listen(PORT, () => {
