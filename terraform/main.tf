@@ -10,10 +10,10 @@ terraform {
   }
 }
 
-# https://registry.terraform.io/providers/scott-the-programmer/minikube/latest/docs/resources/cluster#insecure_registry-1
-resource "minikube_cluster" "docker" {
+module "minikube" {
+  source = "./modules/kubernetes"
   driver            = var.driver
   cluster_name      = var.cluster_name
   addons            = var.addons
-  insecure_registry = var.insecure_registry
+  insecure_registry = var.insecure_registry 
 }
