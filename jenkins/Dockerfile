@@ -3,7 +3,7 @@ FROM jenkins/jenkins:lts
 USER root
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl wget git nodejs npm buildah && \
+    apt-get install -y --no-install-recommends curl wget git nodejs npm buildah podman fuse-overlayfs uidmap && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

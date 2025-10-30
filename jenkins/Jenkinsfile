@@ -9,7 +9,7 @@ pipeline {
         stage('CHECKOUT') {
             steps {
                 dir('build'){
-                    git branch: 'main', url: params.REPOSITORY
+                    git branch: 'feature/jenkis', url: params.REPOSITORY
                 }
             }
         }
@@ -18,7 +18,7 @@ pipeline {
             steps {
                 dir('build'){
                 sh '''
-                    tfsec 
+                    tfsec ./terraform
                 '''
                 }
             }
@@ -28,7 +28,9 @@ pipeline {
             steps {
                 dir('build'){
                 sh '''
-                    buildah || true
+                    cd application
+                    buildah bud --format=docker -f ./Dockerfile -t 192.168.49.1:5000/app:env.BUILD_NUMBER
+                    buildah --tls-verify=false push 192.168.49.1:5000/app:9.9.9
                 '''
                 }
             }
@@ -39,7 +41,6 @@ pipeline {
                 dir('build'){
                 sh '''
                     trivy
-                    grype || true
                 '''
                 }
             }
@@ -49,7 +50,10 @@ pipeline {
             steps {
                 dir('build'){
                     withCredentials([file(credentialsId: 'kube-config', variable: 'KUBE_CONFIG')]) {
-                    sh 'KUBECONFIG=$KUBE_CONFIG kubectl get pods'
+                    sh '''
+                    KUBECONFIG=$KUBE_CONFIG
+                    helm install 
+                    '''            
                     }                    
                 }
             }
