@@ -8,7 +8,8 @@ RUN npm install
 COPY ./ ./
 
 # final stage where the applicaiton will be running
-FROM node:22-bookworm-slim
+# FROM node:22-slim
+FROM node:22-alpine
 
 WORKDIR /app
 

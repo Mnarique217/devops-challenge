@@ -4,4 +4,5 @@ resource "minikube_cluster" "docker" {
   cluster_name      = var.cluster_name
   addons            = var.addons
   insecure_registry = var.insecure_registry
+  network           = var.network
 }
