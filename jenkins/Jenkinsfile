@@ -50,7 +50,7 @@ pipeline {
             steps {
                 dir('build'){
                 sh """
-                    trivy image --exit-code 0 --severity HIGH,CRITICAL --no-progress ${env.REGISTRY}/app:${env.BUILD_NUMBER}
+                    trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress ${env.REGISTRY}/app:${env.BUILD_NUMBER}
                 """
                 }
             }
