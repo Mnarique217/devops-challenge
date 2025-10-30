@@ -3,6 +3,8 @@ pipeline {
     environment {
         REGISTRY = '192.168.49.1:5000'
         APP_GIT_HASH =''
+        RELEASE_NAME="app"
+        NAMESPACE="default"
     }
     parameters {
         choice (name: "REPOSITORY", choices: ['https://github.com/Mnarique217/devops-challenge.git'],description: "repository to build")
@@ -61,7 +63,14 @@ pipeline {
                     sh """
                     export KUBECONFIG=$KUBE_CONFIG
                     kubectl config use-context staging
-                    helm install app . --set tag=${env.BUILD_NUMBER}
+
+                    if helm status "${env.RELEASE_NAME}" -n "${env.NAMESPACE}" >/dev/null 2>&1; then
+                        echo "Release exists. Performing helm upgrade..."
+                        helm upgrade "${env.RELEASE_NAME}" . --namespace "${env.NAMESPACE}" --set image.tag=${env.BUILD_NUMBER}
+                    else
+                        echo "Release not found. Performing helm install..."
+                        helm install "${env.RELEASE_NAME}" . --namespace "${env.NAMESPACE}" --set image.tag=${env.BUILD_NUMBER}
+                    fi
                     """           
                     }                    
                 }
