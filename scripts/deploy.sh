@@ -22,11 +22,14 @@ deploy_kubernetes_environments(){
     install_kubernetes_env "staging"
     kubectl use-context staging
     kubectl create ns staging
+    kubectl create ns production
     wait
     cd $WORKDIR
     install_kubernetes_env "production"
     kubectl use-context production
+    kubectl create ns staging
     kubectl create ns production
+    kubectl use-context staging
 }
 
 deploy_jenkins() {
