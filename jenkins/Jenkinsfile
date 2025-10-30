@@ -48,10 +48,9 @@ pipeline {
         stage('DEPLOYMENT') {
             steps {
                 dir('build'){
-                sh '''
-                    kubectl
-                    helm
-                '''
+                    withCredentials([file(credentialsId: 'kube-config', variable: 'KUBE_CONFIG')]) {
+                    sh 'KUBECONFIG=$KUBE_CONFIG kubectl get pods'
+                    }                    
                 }
             }
         }

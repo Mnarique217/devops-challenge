@@ -13,7 +13,7 @@ uninstall_kubernetes_env(){
     terraform init -reconfigure \
     -backend-config="profile=default" \
     -backend-config="endpoint=http://localhost:9000" \
-    -backend-config="key=kubernetes/minikube/$ENVIRONMENT.tfstate"
+    -backend-config="key=kubernetes/$ENVIRONMENT.tfstate"
     terraform destroy -auto-approve=true -var-file=./environments/$ENVIRONMENT/inputs.tfvars
 }
 
