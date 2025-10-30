@@ -1,13 +1,69 @@
 pipeline {
     agent any
+
+    parameters {
+        choice (name: "REPOSITORY", choices: ['https://github.com/Mnarique217/devops-challenge.git'],description: "repository to build")
+    }
+
     stages {
         stage('CHECKOUT') {
             steps {
-                sh 'echo "Hello World"'
+                dir('build'){
+                    git branch: 'main', url: params.REPOSITORY
+                }
+            }
+        }
+
+        stage('STATIC-CODE-ANALISIS') {
+            steps {
+                dir('build'){
                 sh '''
-                    echo "Multiline shell steps works too"
-                    ls -lah
+                    tfsec 
                 '''
+                }
+            }
+        }
+
+        stage('BUILD') {
+            steps {
+                dir('build'){
+                sh '''
+                    buildah || true
+                '''
+                }
+            }
+        }
+
+        stage('SECURITY-SCANNING') {
+            steps {
+                dir('build'){
+                sh '''
+                    trivy
+                    grype || true
+                '''
+                }
+            }
+        }
+
+        stage('DEPLOYMENT') {
+            steps {
+                dir('build'){
+                sh '''
+                    kubectl
+                    helm
+                '''
+                }
+            }
+        }
+
+        stage('ROLLBACK') {
+            steps {
+                dir('build'){
+                sh '''
+                    kubectl 
+                    helm
+                '''
+                }
             }
         }
     }
