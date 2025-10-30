@@ -16,7 +16,7 @@ pipeline {
         stage('CHECKOUT') {
             steps {
                 dir('build'){
-                    git branch: 'feature/installer-automation', url: params.REPOSITORY
+                    git branch: 'main', url: params.REPOSITORY
                 }
             }
         }
