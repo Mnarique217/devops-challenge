@@ -1,0 +1,144 @@
+pipeline {
+    agent any
+    environment {
+        REGISTRY = '192.168.49.1:5000'
+        APP_GIT_HASH =''
+        RELEASE_NAME="app"
+        PROD_NAMESPACE="production"
+        DEV_NAMESPACE="staging"
+        K8S_CONTEXT="staging"
+    }
+    parameters {
+        choice (name: "REPOSITORY", choices: ['https://github.com/Mnarique217/devops-challenge.git'],description: "repository to build")
+    }
+
+    stages {
+        stage('CHECKOUT') {
+            steps {
+                dir('build'){
+                    git branch: 'main', url: params.REPOSITORY
+                }
+            }
+        }
+
+        stage('STATIC-CODE-ANALISIS') {
+            steps {
+                dir('build'){
+                sh '''
+                    tfsec ./terraform
+                '''
+                }
+            }
+        }
+
+        stage('BUILD') {
+            steps {
+                script{
+                    dir('build'){
+                        // ref: https://gist.github.com/JonathanTurnock/1035f716aa8f3ccec886a9bf17df7218
+                        // env.APP_GIT_HASH = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                        // def tag = ""
+                    sh """
+                        cd application
+                        buildah bud --format=docker -f ./Dockerfile -t ${env.REGISTRY}/app:${env.BUILD_NUMBER}
+                        buildah --tls-verify=false push ${env.REGISTRY}/app:${env.BUILD_NUMBER}
+                    """
+                    }
+                }
+            }
+        }
+
+        stage('SECURITY-SCANNING') {
+            steps {
+                dir('build'){
+                sh """
+                    trivy image --exit-code 1 --severity HIGH,CRITICAL --no-progress ${env.REGISTRY}/app:${env.BUILD_NUMBER}
+                """
+                }
+            }
+        }
+
+        stage('DEPLOYMENT') {
+            steps {
+                dir('build/kubernetes/helm-chart'){
+                    withCredentials([file(credentialsId: 'kube-config-staging', variable: 'KUBE_CONFIG')]) {
+                    sh """
+                    export KUBECONFIG=$KUBE_CONFIG
+                    kubectl config use-context staging
+
+                    if helm status "${env.RELEASE_NAME}" -n "${env.DEV_NAMESPACE}" >/dev/null 2>&1; then
+                        echo "Release exists. Performing helm upgrade..."
+                        helm upgrade "${env.RELEASE_NAME}" . --namespace "${env.DEV_NAMESPACE}" --set image.tag=${env.BUILD_NUMBER}
+                    else
+                        echo "Release not found. Performing helm install..."
+                        helm install "${env.RELEASE_NAME}" . --namespace "${env.DEV_NAMESPACE}" --set image.tag=${env.BUILD_NUMBER}
+                    fi
+                    """           
+                    }                    
+                }
+            }
+        }
+
+     stage('ENV-PROMOTION') {
+                steps {
+                    script{
+                        // Ref: https://stackoverflow.com/questions/47080683/read-interactive-input-in-jenkins-pipeline-to-a-variable
+                        def userInput = input(id: 'userInput', message: 'Promote to production?',
+                        parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', description:'describing choices', name:'nameChoice', choices: "production"] ])
+                        
+                        dir('build/kubernetes/helm-chart'){
+                            withCredentials([file(credentialsId: 'kube-config-staging', variable: 'KUBE_CONFIG')]) {
+                            sh """
+                                if [ "${userInput}" = "production" ]; then
+                                    export KUBECONFIG=$KUBE_CONFIG
+                                    kubectl config use-context staging
+
+                                    if helm status "${env.RELEASE_NAME}" -n "${env.PROD_NAMESPACE}" >/dev/null 2>&1; then
+                                        echo "Release exists. Performing helm upgrade..."
+                                        helm upgrade "${env.RELEASE_NAME}" . --namespace "${env.PROD_NAMESPACE}" --set image.tag=${env.BUILD_NUMBER}
+                                    else
+                                        echo "Release not found. Performing helm install..."
+                                        helm install "${env.RELEASE_NAME}" . --namespace "${env.PROD_NAMESPACE}" --set image.tag=${env.BUILD_NUMBER}
+                                    fi
+                                else
+                                    echo "Not promoted to production..."
+                                fi
+                            """           
+                            }                    
+                        }
+                    }
+                }
+        }   
+
+
+        stage('Rollback') {
+            steps {
+                script{
+                    // Ref: https://stackoverflow.com/questions/47080683/read-interactive-input-in-jenkins-pipeline-to-a-variable
+                    def userInputRollback = input(id: 'userInputRollback', message: 'Rollback production?',
+                    parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', description:'describing choices', name:'nameChoice', choices: "ok"] ])
+                    
+                    dir('build/kubernetes/helm-chart'){
+                        withCredentials([file(credentialsId: 'kube-config-staging', variable: 'KUBE_CONFIG')]) {
+                        sh """
+                            if [ "${userInputRollback}" = "ok" ]; then
+                                export KUBECONFIG=$KUBE_CONFIG
+                                kubectl config use-context ${env.K8S_CONTEXT}
+
+                                if helm status "${env.RELEASE_NAME}" -n "${PROD_NAMESPACE}" >/dev/null 2>&1; then
+                                    echo "Release exists. Rollabck can be attempted"
+                                    helm rollback "${env.RELEASE_NAME}" --namespace "${PROD_NAMESPACE}"
+                                else
+                                    echo "Release not found. Rollack cannot be applied..."
+                                fi
+                            else
+                                echo "No Rollback applied..."
+                            fi
+                        """           
+                        }                    
+                    }
+                }
+            }
+        }
+    }
+}
