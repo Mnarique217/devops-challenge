@@ -39,7 +39,7 @@ deploy_jenkins() {
     --network bridge \
     --privileged \
     --group-add $(getent group docker | awk -F: '{print $3}') \
-    --name jenkins jenkins/jenkins:lts-x
+    --name jenkins jenkins/jenkins:lts-dev
     # get jenkins password
     sleep 5
     docker exec $(docker ps -aqf "name=jenkins") cat /var/jenkins_home/secrets/initialAdminPassword
