@@ -1,3 +1,7 @@
+# TODO
+I was not able to fully update this file and all requested changes due to time limitations, 2 and 1/2 days was very challenging due to several issues faced during the process.
+
+
 ## 🏗️ Part 1 – Infrastructure as Code with Terraform
 
 | Item                               | Description                                               | Implemented  |
