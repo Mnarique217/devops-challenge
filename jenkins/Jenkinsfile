@@ -1,6 +1,9 @@
 pipeline {
     agent any
-
+    environment {
+        REGISTRY = '192.168.49.1:5000'
+        APP_GIT_HASH =''
+    }
     parameters {
         choice (name: "REPOSITORY", choices: ['https://github.com/Mnarique217/devops-challenge.git'],description: "repository to build")
     }
@@ -26,12 +29,17 @@ pipeline {
 
         stage('BUILD') {
             steps {
-                dir('build'){
-                sh '''
-                    cd application
-                    buildah bud --format=docker -f ./Dockerfile -t 192.168.49.1:5000/app:env.BUILD_NUMBER
-                    buildah --tls-verify=false push 192.168.49.1:5000/app:9.9.9
-                '''
+                script{
+                    dir('build'){
+                        // ref: https://gist.github.com/JonathanTurnock/1035f716aa8f3ccec886a9bf17df7218
+                        // env.APP_GIT_HASH = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                        // def tag = ""
+                    sh """
+                        cd application
+                        buildah bud --format=docker -f ./Dockerfile -t ${env.REGISTRY}/app:${env.BUILD_NUMBER}
+                        buildah --tls-verify=false push ${env.REGISTRY}/app:${env.BUILD_NUMBER}
+                    """
+                    }
                 }
             }
         }
@@ -39,21 +47,22 @@ pipeline {
         stage('SECURITY-SCANNING') {
             steps {
                 dir('build'){
-                sh '''
-                    trivy
-                '''
+                sh """
+                    trivy image --exit-code 0 --severity HIGH,CRITICAL --no-progress ${env.REGISTRY}/app:${env.BUILD_NUMBER}
+                """
                 }
             }
         }
 
         stage('DEPLOYMENT') {
             steps {
-                dir('build'){
+                dir('build/kubernetes/helm-chart'){
                     withCredentials([file(credentialsId: 'kube-config', variable: 'KUBE_CONFIG')]) {
-                    sh '''
-                    KUBECONFIG=$KUBE_CONFIG
-                    helm install 
-                    '''            
+                    sh """
+                    export KUBECONFIG=$KUBE_CONFIG
+                    kubectl config use-context staging
+                    helm install app . --set tag=${env.BUILD_NUMBER}
+                    """           
                     }                    
                 }
             }
