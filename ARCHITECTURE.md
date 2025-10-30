@@ -1,5 +1,7 @@
 # Technical decisions
 
+![Alt image pull error](docs/images/high-level-architecture.png)
+
 ## Improvements
 - Decouple architecture in general, one project for infrastructure other for apps.
 - Implement cicd project to be able to version the pipes and share across other teams/projects
@@ -69,4 +71,3 @@ Also after using this approach I had a big doubt, if the local registry was acce
 - Instead of mounting the kube config as volume, it was approached with Jenkins secrets to store a minified version of it.
 - Modify Jenkins controller, installing binaries into it, is not a good practice, but due to time limitations was the selected approach.
 - Exposing my localhost to the public network is not a good idea, but for this project was the only way to be able to trigger a webhook from jenkins, this using ngrok, which was the simplest way, working at the first attemp.
-
