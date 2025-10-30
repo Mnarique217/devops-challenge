@@ -15,38 +15,66 @@
 
 ## 🚀 Part 2 – CI/CD with Jenkins
 
-| Item                                                                                        | Implemented |
-| ------------------------------------------------------------------------------------------- | ------------ |
-| Pull source code from Git and set up workspace/environment variables                                    | [DONE] |
-| Scan Terraform with `tfsec` or `checkov`; optional app scan (SonarQube, ESLint, etc.); generate reports | [DONE] |
-| Build Docker image, tag with build number & commit hash, and push to registry                           | [DONE] |
-| Scan images with `Trivy` or `Grype` for vulnerabilities and compliance; generate reports                | [DONE] |
-| Deploy to Kubernetes via Helm or YAML; support environment promotion and approval gates                 | [DONE] |
-| Implement Git tag, Helm, and database migration rollbacks (if applicable)                               | [DONE] |
+| Item.                                                                                            | Implemented |
+| ----------------------------------------------------------------------------------------------- | ------------ |
+| Pull source code from Git                                                                       | [DONE]    |
+| Set up workspace and environment variables                                                      | [DONE]    |
+| Scan Terraform code using `tfsec` or `checkov`                                                  | [DONE]    |
+| Optional: Application code scan (SonarQube, ESLint, etc.)                                       | [DONE]    |
+| Generate security reports                                                                       | [DONE]    |
+| Build Docker image for sample application                                                       | [DONE]    |
+| Tag with build number and commit hash                                                           | [PENDING]    |
+| Push to registry (DockerHub for cloud, local registry for local setup)                          | [DONE]    |
+| Scan container images with `Trivy` or `Grype`                                                   | [DONE]    |
+| Check for vulnerabilities and compliance                                                        | [DONE]    |
+| Generate security reports                                                                       | [DONE]    |
+| Deploy to Kubernetes cluster                                                                    | [DONE]    |
+| Support both Helm charts and YAML manifests                                                     | [DONE]    |
+| Implement environment promotion (dev → staging → prod)                                          | [DONE]    |
+| Manual approval gates for production                                                            | [DONE]    |
+| Version-based rollback using Git tags                                                           | [PENDING]    |
+| Helm revision rollback                                                                          | [DONE]    |
+| Database migration rollback (if applicable)                                                     | [NO]    |
+
 
 ## Part 3
 
-| Item                                              | Implemented  |
-| ------------------------------------------------- | ------------ |
-| Use Helm templates for Kubernetes manifests       | [DONE]       |
-| Manage releases via Helm charts and repositories  | [NO]         |
-| Enable simple versioned upgrades and rollbacks    | [DONE]       |
+| Item                                                                                             | Implemented  |
+| ------------------------------------------------------------------------------------------------ | ------------ |
+| **Staging Environment**: `staging` namespace                                                     | [PENDING]    |
+| **Production Environment**: `production` namespace                                               | [PENDING]    |
+| Environment-specific configurations                                                              | [PENDING]    |
+| Resource requests and limits                                                                     | [DONE]       |
+| Readiness and liveness probes                                                                    | [DONE]       |
+| Environment variables and ConfigMaps                                                             | [PARTIAL]    |
+| Secrets management (non-hardcoded)                                                               | [PARTIAL]    |
+| Service exposure (ClusterIP, NodePort, or LoadBalancer)                                          | [DONE]       |
+| Ingress configuration with TLS                                                                   | [PENDING]    |
+| **Local**: NGINX Ingress with self-signed certificates                                           | [PENDING]    |
+| Network Policies (optional but recommended)                                                      | [PENDING]    |
+| RBAC (Role-Based Access Control)                                                                 | [PENDING]    |
+| Pod Security Policies/Standards                                                                  | [PENDING]    |
+| Horizontal Pod Autoscaling (HPA)                                                                 | [DONE]       |
+| Persistent Volume Claims (if needed)                                                             | [PENDING]    |
+
 
 ## 🔐 Part 4 – Security Practices
 
-| Item                                                  | Implemented |
-| ------------------------------------------------------------ | ------------ |
-| Use `tfsec` or `checkov` in CI/CD pipeline                   | [DONE]    |
-| Kubernetes RBAC and service accounts                          | [DONE]       |
-| Use `Trivy`, `Grype`, or `Docker Scout`                       | [DONE]    |
-| Non-root containers, read-only filesystems                    | [DONE]    |
-| Never commit secrets to version control                       | [DONE]    |
-| Generate security reports in CI/CD                            | [DONE]       |
-| Implement security policies and compliance checks             | [PENDING]    |
-| Use minimal, updated base images                              | [PENDING]    |
-| Use Jenkins Credentials Store                                 | [PENDING]    |
-| Use Kubernetes Secrets and ConfigMaps                         | [PARTIAL]    |
-| Use `.env` files (gitignored)                                 | [PENDING]    |
-| Track vulnerabilities and remediation                         | [PENDING]    |
-| Implement compliance reporting                                | [PENDING]    |
-| Capture metrics and set up alerting                           | [PENDING]    |
+| Description                                                                                     | Implemented |
+| ------------------------------------------------------------------------------------------------ | ------------ |
+| **Terraform Scanning**: Use `tfsec` or `checkov` in CI/CD pipeline                               | [DONE]    |
+| **Policy as Code**: Implement security policies and compliance checks                            | [PENDING] |
+| **Access Control**:                                                                              | [PENDING] |
+| **AWS**: IAM roles with least-privilege principles                                               | [NO]      |
+| **Local**: Kubernetes RBAC and service accounts                                                  | [PENDING] |
+| **Image Scanning**: Use `Trivy`, `Grype`, or `Docker Scout`                                      | [DONE]    |
+| **Base Image Security**: Use minimal, updated base images                                        | [DONE]    |
+| **Runtime Security**: Non-root containers, read-only filesystems                                 | [DONE]    |
+| **Never commit secrets** to version control                                                      | [DONE]    |
+| **Jenkins**: Use Jenkins Credentials Store                                                       | [DONE]    |
+| **Kubernetes**: Use Secrets and ConfigMaps                                                       | [PENDING] |
+| **Local Development**: Use `.env` files (gitignored)                                             | [DONE]    |
+| Security scan reports in CI/CD                                                                   | [PENDING] |
+| Vulnerability tracking and remediation                                                           | [PENDING] |
+| Compliance reporting                                                                             | [PENDING] |
+| Security metrics and alerting                                                                    | [PENDING] |
