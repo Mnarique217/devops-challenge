@@ -11,7 +11,8 @@ app.use(express.json());
 
 let users = [
   { id: 1, name: 'John Doe', email: 'john@example.com' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com' }
+  { id: 2, name: 'Jane Smith', email: 'jane@example.com' },
+  { id: 2, name: 'Manrique', email: 'manrique@example.com' }
 ];
 
 
