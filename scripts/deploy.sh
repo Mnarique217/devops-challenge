@@ -32,8 +32,11 @@ deploy_kubernetes_environments(){
 deploy_jenkins() {
     docker stop jenkins || true
     docker rm jenkins || true
+
+    # -v /home/geekmq/Desktop/DevOps/devops-challenge/config:/var/jenkins_home/.kube/config \
     docker run -d -p 8080:8080 -p 50000:50000 \
     -v jenkins_home:/var/jenkins_home \
+    --network bridge \
     --privileged \
     --group-add $(getent group docker | awk -F: '{print $3}') \
     --name jenkins jenkins/jenkins:lts-x
