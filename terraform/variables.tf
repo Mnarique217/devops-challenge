@@ -22,3 +22,7 @@ variable "insecure_registry" {
     type = list(string)
     default = ["192.168.49.1:5000"]
 }
+
+variable "network" {
+  default = "bridge"
+}
