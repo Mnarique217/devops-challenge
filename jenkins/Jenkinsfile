@@ -4,7 +4,9 @@ pipeline {
         REGISTRY = '192.168.49.1:5000'
         APP_GIT_HASH =''
         RELEASE_NAME="app"
-        NAMESPACE="default"
+        PROD_NAMESPACE="production"
+        DEV_NAMESPACE="staging"
+        K8S_CONTEXT="staging"
     }
     parameters {
         choice (name: "REPOSITORY", choices: ['https://github.com/Mnarique217/devops-challenge.git'],description: "repository to build")
@@ -14,7 +16,7 @@ pipeline {
         stage('CHECKOUT') {
             steps {
                 dir('build'){
-                    git branch: 'feature/jenkins', url: params.REPOSITORY
+                    git branch: 'feature/installer-automation/', url: params.REPOSITORY
                 }
             }
         }
@@ -64,12 +66,12 @@ pipeline {
                     export KUBECONFIG=$KUBE_CONFIG
                     kubectl config use-context staging
 
-                    if helm status "${env.RELEASE_NAME}" -n "${env.NAMESPACE}" >/dev/null 2>&1; then
+                    if helm status "${env.RELEASE_NAME}" -n "${env.DEV_NAMESPACE}" >/dev/null 2>&1; then
                         echo "Release exists. Performing helm upgrade..."
-                        helm upgrade "${env.RELEASE_NAME}" . --namespace "${env.NAMESPACE}" --set image.tag=${env.BUILD_NUMBER}
+                        helm upgrade "${env.RELEASE_NAME}" . --namespace "${env.DEV_NAMESPACE}" --set image.tag=${env.BUILD_NUMBER}
                     else
                         echo "Release not found. Performing helm install..."
-                        helm install "${env.RELEASE_NAME}" . --namespace "${env.NAMESPACE}" --set image.tag=${env.BUILD_NUMBER}
+                        helm install "${env.RELEASE_NAME}" . --namespace "${env.DEV_NAMESPACE}" --set image.tag=${env.BUILD_NUMBER}
                     fi
                     """           
                     }                    
@@ -82,21 +84,21 @@ pipeline {
                     script{
                         // Ref: https://stackoverflow.com/questions/47080683/read-interactive-input-in-jenkins-pipeline-to-a-variable
                         def userInput = input(id: 'userInput', message: 'Promote to production?',
-                        parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', description:'describing choices', name:'nameChoice', choices: "staging\nproduction"] ])
+                        parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', description:'describing choices', name:'nameChoice', choices: "production"] ])
                         
                         dir('build/kubernetes/helm-chart'){
-                            withCredentials([file(credentialsId: 'kube-config-production', variable: 'KUBE_CONFIG')]) {
+                            withCredentials([file(credentialsId: 'kube-config-staging', variable: 'KUBE_CONFIG')]) {
                             sh """
                                 if [ "${userInput}" = "production" ]; then
                                     export KUBECONFIG=$KUBE_CONFIG
-                                    kubectl config use-context production
+                                    kubectl config use-context staging
 
-                                    if helm status "${env.RELEASE_NAME}" -n "${env.NAMESPACE}" >/dev/null 2>&1; then
+                                    if helm status "${env.RELEASE_NAME}" -n "${env.PROD_NAMESPACE}" >/dev/null 2>&1; then
                                         echo "Release exists. Performing helm upgrade..."
-                                        helm upgrade "${env.RELEASE_NAME}" . --namespace "${env.NAMESPACE}" --set image.tag=${env.BUILD_NUMBER}
+                                        helm upgrade "${env.RELEASE_NAME}" . --namespace "${env.PROD_NAMESPACE}" --set image.tag=${env.BUILD_NUMBER}
                                     else
                                         echo "Release not found. Performing helm install..."
-                                        helm install "${env.RELEASE_NAME}" . --namespace "${env.NAMESPACE}" --set image.tag=${env.BUILD_NUMBER}
+                                        helm install "${env.RELEASE_NAME}" . --namespace "${env.PROD_NAMESPACE}" --set image.tag=${env.BUILD_NUMBER}
                                     fi
                                 else
                                     echo "Not promoted to production..."
@@ -109,13 +111,32 @@ pipeline {
         }   
 
 
-        stage('ROLLBACK') {
+        stage('Rollback') {
             steps {
-                dir('build'){
-                sh '''
-                    kubectl 
-                    helm
-                '''
+                script{
+                    // Ref: https://stackoverflow.com/questions/47080683/read-interactive-input-in-jenkins-pipeline-to-a-variable
+                    def userInputRollback = input(id: 'userInputRollback', message: 'Rollback production?',
+                    parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', description:'describing choices', name:'nameChoice', choices: "ok"] ])
+                    
+                    dir('build/kubernetes/helm-chart'){
+                        withCredentials([file(credentialsId: 'kube-config-staging', variable: 'KUBE_CONFIG')]) {
+                        sh """
+                            if [ "${userInputRollback}" = "ok" ]; then
+                                export KUBECONFIG=$KUBE_CONFIG
+                                kubectl config use-context ${env.K8S_CONTEXT}
+
+                                if helm status "${env.RELEASE_NAME}" -n "${PROD_NAMESPACE}" >/dev/null 2>&1; then
+                                    echo "Release exists. Rollabck can be attempted"
+                                    helm rollback "${env.RELEASE_NAME}" --namespace "${PROD_NAMESPACE}"
+                                else
+                                    echo "Release not found. Rollack cannot be applied..."
+                                fi
+                            else
+                                echo "No Rollback applied..."
+                            fi
+                        """           
+                        }                    
+                    }
                 }
             }
         }
