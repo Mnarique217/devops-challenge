@@ -14,7 +14,7 @@ pipeline {
         stage('CHECKOUT') {
             steps {
                 dir('build'){
-                    git branch: 'feature/jenkis', url: params.REPOSITORY
+                    git branch: 'feature/jenkins', url: params.REPOSITORY
                 }
             }
         }
