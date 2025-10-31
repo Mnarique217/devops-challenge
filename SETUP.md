@@ -1,6 +1,70 @@
 ## Github webhook
 
-### Expose Jenkins to be visible for github
+
+## Pre-requisites
+
+- minio s3 for terraform tfstate
+- Docker
+- Terraform
+- Build jenkins custom Dockerimage
+
+### Build Jenkins docker image
+
+```
+cd jenkins
+docker build . -t jenkins/jenkins:lts-dev
+```
+
+### Deploy minio
+`run following bash to deploy in docker container`
+
+```
+cd scripts && bash cli.bash -i-s3
+## or use below code 
+install_s3() {
+    sudo mkdir -p ~/.aws
+    password=$(tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 10)
+
+sudo tee ~/.aws/credentials > /dev/null <<EOF
+[default]
+aws_access_key_id = admin
+aws_secret_access_key = $password
+EOF
+    docker stop minio || true
+    docker rm minio || true
+    docker run -d \
+    --name minio \
+    -p 9000:9000 \
+    -p 9001:9001 \
+    -e "MINIO_ROOT_USER=admin" \
+    -e "MINIO_ROOT_PASSWORD=$password" \
+    -v ~/minio-data:/data \
+    minio/minio server /data --console-address ":9001"
+}
+```
+### Deploy Terraform
+
+```
+cd scripts && bash cli.bash-i-terraform
+# Use following bash or cli
+install_terraform(){
+    # latest open source version
+    TERRAFORM_VERSION="1.5.7"
+    wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    sudo mv terraform /usr/local/bin/
+}
+```
+
+### Run Jenkins as Container
+
+```
+cd scripts && bash cli.bash -i-jenkins
+```
+
+---
+
+### Expose Jenkins to be visible for github (optional)
 
 For this is required to expose local Jenkins to the public network, there are multiple services, but one that worked at first was `https://dashboard.ngrok.com/get-started/setup/linux`.
 
