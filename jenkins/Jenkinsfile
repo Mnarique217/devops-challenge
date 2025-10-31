@@ -116,7 +116,7 @@ pipeline {
                 script{
                     // Ref: https://stackoverflow.com/questions/47080683/read-interactive-input-in-jenkins-pipeline-to-a-variable
                     def userInputRollback = input(id: 'userInputRollback', message: 'Rollback production?',
-                    parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', description:'describing choices', name:'nameChoice', choices: "ok"] ])
+                    parameters: [[$class: 'ChoiceParameterDefinition', defaultValue: 'strDef', description:'describing choices', name:'nameChoice', choices: "ok\nno-rollback"] ])
                     
                     dir('build/kubernetes/helm-chart'){
                         withCredentials([file(credentialsId: 'kube-config-staging', variable: 'KUBE_CONFIG')]) {
