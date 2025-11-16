@@ -23,3 +23,12 @@ jobs:
 
       - name: Build the Docker image
         run: docker build ./application --file ./application/Dockerfile --tag app:${{ github.run_id }}
+
+      - name: Install Trivy
+        uses: aquasecurity/trivy-action@v0.20.0
+        with:
+          scan-type: image
+          image-ref: app:${{ github.run_id }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: false
+          exit-code: '1'
