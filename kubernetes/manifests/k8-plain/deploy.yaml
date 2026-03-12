@@ -1,36 +1,3 @@
-
-## Exploring the application
-
-```
-cd application
-npm i
-```
-
-## Registry to Preserve Docker Images
-
-```
-docker run -d \
-  -p 5001:5000 \
-  --name local-registry \
-  registry:2
-```
-
-## Creating a Docker Image
-
-```
-docker build ./application --file ./application/Dockerfile --tag host.docker.internal:5000/app:1.0.0
-docker push host.docker.internal:5001/app:1.0.0
-```
-
-## How to Deploy the Container
-
-```
-docker run -d -p 3000:3000 app:v1.0.0
-```
-
-## Kubernetes Orchestration
-
-```
 ---
 # Source: app/templates/serviceaccount.yaml
 apiVersion: v1
@@ -105,7 +72,7 @@ spec:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
-          image: "host.docker.internal:5000/app:1.0.0"
+          image: "host.docker.internal:5001/app:1.0.0"
           env:
             - name: NODE_ENV
               value: prod
@@ -130,8 +97,3 @@ spec:
             requests:
               cpu: 100m
               memory: 128Mi
-```
-
-```
-kubectl port-forward pod/demo-app-7ff4cbf87b-m8t2w 8080:80
-```
