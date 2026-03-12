@@ -20,6 +20,8 @@ docker run -d \
 ```
 docker build ./application --file ./application/Dockerfile --tag host.docker.internal:5000/app:1.0.0
 docker push host.docker.internal:5001/app:1.0.0
+# open a browser and paste
+http://localhost:5001/v2/_catalog
 ```
 
 ## How to Deploy the Container
@@ -133,5 +135,5 @@ spec:
 ```
 
 ```
-kubectl port-forward pod/demo-app-7ff4cbf87b-m8t2w 8080:80
+kubectl port-forward pod/demo-app-7ff4cbf87b-m8t2w 3000:80
 ```
