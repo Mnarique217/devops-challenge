@@ -35,7 +35,7 @@ docker run -d -p 3000:3000 app:v1.0.0
 ```
 cd webb-app
 docker build -t web:1.0.0 .
-docker run -p 8080:80 angular-app
+docker run -p 8080:80 web:1.0.0
 
 ```
 
