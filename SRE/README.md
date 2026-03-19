@@ -30,6 +30,15 @@ http://localhost:5001/v2/_catalog
 docker run -d -p 3000:3000 app:v1.0.0
 ```
 
+## web Application
+
+```
+cd webb-app
+docker build -t web:1.0.0 .
+docker run -p 8080:80 angular-app
+
+```
+
 ## Kubernetes Orchestration
 
 ```
