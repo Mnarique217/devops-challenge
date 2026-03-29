@@ -14,18 +14,13 @@ install_kubernetes_env(){
     -backend-config="profile=default" \
     -backend-config="endpoint=http://localhost:9000" \
     -backend-config="key=kubernetes/$ENVIRONMENT.tfstate"
-    terraform apply -auto-approve=true -var-file=./environments/$ENVIRONMENT/inputs.tfvars
+    terraform apply -auto-approve=true 
 }
 
 deploy_kubernetes_environments(){
     cd $WORKDIR
-    install_kubernetes_env "staging"
-    kubectl use-context staging
-    kubectl create ns staging
-    kubectl create ns production
-    wait
-    cd $WORKDIR
     install_kubernetes_env "production"
+    wait
     kubectl use-context production
     kubectl create ns staging
     kubectl create ns production

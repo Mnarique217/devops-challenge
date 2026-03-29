@@ -18,6 +18,7 @@ aws_secret_access_key = $password
 EOF
     docker stop minio || true
     docker rm minio || true
+    
     docker run -d \
     --name minio \
     -p 9000:9000 \
@@ -26,4 +27,24 @@ EOF
     -e "MINIO_ROOT_PASSWORD=$password" \
     -v ~/minio-data:/data \
     minio/minio server /data --console-address ":9001"
+}
+
+install_docker(){
+    sudo apt update
+    sudo apt install docker.io -y
+}
+
+install_kubectl(){
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    chmod +x kubectl
+    sudo mv kubectl /usr/local/bin/
+}
+
+install_terraform(){
+    curl -LO https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_linux_amd64.zip && \
+    sudo apt-get update && sudo apt-get install -y unzip && \
+    unzip -o terraform_1.5.7_linux_amd64.zip && \
+    sudo mv -f terraform /usr/bin/terraform && \
+    sudo chmod +x /usr/bin/terraform && \
+    rm terraform_1.5.7_linux_amd64.zip
 }

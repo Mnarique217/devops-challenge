@@ -10,6 +10,7 @@ HELP=$( cat << 'EOF'
  -d-k8: Deletes minikube
  -i-terraform: install terraform
  -i-s3: install minio
+ -i-dc: install docker io
 EOF
 )
 
@@ -30,6 +31,19 @@ case $ARG in
    '-i-s3')
       install_s3
    ;;
+
+   '-i-dc')
+      install_docker
+   ;;
+
+   '-i-kc')
+      install_kubectl
+   ;;
+
+   '-i-tf')
+      install_terraform
+   ;;
+
    *)
       echo "$HELP"
    ;;
